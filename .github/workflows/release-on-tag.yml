@@ -8,11 +8,10 @@ env:
 
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
         python-version: ["3.12"]
     steps:
     - uses: actions/checkout@v4
@@ -26,7 +25,6 @@ jobs:
       run: python -c "import sys; print(sys.version)"
 
     - name: Set up 7zip
-      if: matrix.os == 'windows-latest'
       uses: milliewalky/setup-7-zip@v1
 
     - name: Install dependencies
@@ -38,25 +36,57 @@ jobs:
     - name: Create release artifact
       run: |
         mkdir release
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          cp dist/client release/
-          cp srv.json release/
-          tar -czvf release-${{ github.ref_name }}-linux.tar.gz release
-        if: matrix.os == 'windows-latest'
         run: |
           copy dist\client.exe release\
           copy srv.json release\
-          7z a release-${{ github.ref_name }}-windows.7z release
-        - name: Upload artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: release-artifact-${{ matrix.os }}
-            path: release-${{ github.ref_name }}-${{ matrix.os == 'windows-latest' && 'windows.7z' || 'linux.tar.gz' }}.
+          7z a release-win-${{ github.ref_name }}.7z release
+          
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifact-win
+        path: release-win-${{ github.ref_name }}.7z
+            
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+          python-version: ${{ matrix.python-version }}
+          
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Install dependencies
+      run: python -m pip install --upgrade pip pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --noconsole --onefile client.py 
+
+    - name: Create release artifact
+      run: |
+        mkdir release
+        run: |
+          cp dist/client release/
+          cp srv.json release/
+          tar -czvf release-lin-${{ github.ref_name }}.tar.gz release
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifact-lin
+        path: release-lin-${{ github.ref_name }}.tar.gz
 
 
   publish-release:
-    needs: build
+    needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     
     steps:
