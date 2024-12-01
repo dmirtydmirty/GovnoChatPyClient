@@ -27,7 +27,7 @@ jobs:
 
     - name: Set up 7zip
       if: matrix.os == 'windows-latest'
-      run: choco install cmake 7zip
+      uses: milliewalky/setup-7-zip@v1
 
     - name: Install dependencies
       run: python -m pip install --upgrade pip pyinstaller
@@ -37,23 +37,22 @@ jobs:
 
     - name: Create release artifact
       run: |
-          mkdir release
-          if: matrix.os == 'ubuntu-latest'
-          run: |
-            cp dist/client release/
-            cp srv.json    release/
-            tar -czvf release-${{ github.ref_name }}-linux.tar.gz release
-          if: matrix.os == 'windows-latest'
-          run: |
-            copy dist/client.exe release/
-            copy srv.json        release/
-            7z a release-${{ github.ref_name }}-windows.7z release
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-artifact-${{ matrix.os }}
-        path: release-${{ github.ref_name }}-${{ matrix.os == 'windows-latest' && 'windows.7z' || 'linux.tar.gz' }}.
+        mkdir release
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cp dist/client release/
+          cp srv.json release/
+          tar -czvf release-${{ github.ref_name }}-linux.tar.gz release
+        if: matrix.os == 'windows-latest'
+        run: |
+          copy dist\client.exe release\
+          copy srv.json release\
+          7z a release-${{ github.ref_name }}-windows.7z release
+        - name: Upload artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: release-artifact-${{ matrix.os }}
+            path: release-${{ github.ref_name }}-${{ matrix.os == 'windows-latest' && 'windows.7z' || 'linux.tar.gz' }}.
 
 
   publish-release:
