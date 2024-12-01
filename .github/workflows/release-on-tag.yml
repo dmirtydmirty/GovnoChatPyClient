@@ -1,0 +1,106 @@
+name: Release on tag
+on:
+  create:
+    tags:
+      - v*
+env:
+  BUILD_TYPE: Release
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12"]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+          python-version: ${{ matrix.python-version }}
+          
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Set up 7zip
+      if: matrix.os == 'windows-latest'
+      run: choco install cmake 7zip
+
+    - name: Install dependencies
+      run: python -m pip install --upgrade pip pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --noconsole --onefile client.py 
+
+    - name: Create release artifact
+      run: |
+          mkdir release
+          if: matrix.os == 'ubuntu-latest'
+          run: |
+            cp dist/client release/
+            cp srv.json    release/
+            tar -czvf release-${{ github.ref_name }}-linux.tar.gz release
+          if: matrix.os == 'windows-latest'
+          run: |
+            copy dist/client.exe release/
+            copy srv.json        release/
+            7z a release-${{ github.ref_name }}-windows.7z release
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifact-${{ matrix.os }}
+        path: release-${{ github.ref_name }}-${{ matrix.os == 'windows-latest' && 'windows.7z' || 'linux.tar.gz' }}.
+
+
+  publish-release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifact-lin
+          path: ./
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifact-win
+          path: ./
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          body: This is a release build.
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux artifact to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-lin-${{ github.ref_name }}.tar.gz
+          asset_name: release-lin-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/x-gzip
+
+      - name: Upload Windows artifact to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-win-${{ github.ref_name }}.7z
+          asset_name: release-win-${{ github.ref_name }}.7z
+          asset_content_type: application/x-7z-compressed
