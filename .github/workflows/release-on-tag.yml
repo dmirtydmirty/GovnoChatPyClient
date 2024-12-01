@@ -35,13 +35,13 @@ jobs:
         mkdir release
         copy dist\client.exe release\
         copy srv.json release\
-        7z a release-win-${{ github.ref_name }}.7z release
+        7z a GovnoChatPyClient-win-${{ github.ref_name }}.7z release
           
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: release-artifact-win
-        path: release-win-${{ github.ref_name }}.7z
+        path: GovnoChatPyClient-win-${{ github.ref_name }}.7z
             
 
   build-linux:
@@ -71,13 +71,13 @@ jobs:
         mkdir release
         cp dist/client release/
         cp srv.json release/
-        tar -czvf release-lin-${{ github.ref_name }}.tar.gz release
+        tar -czvf GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz release
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: release-artifact-lin
-        path: release-lin-${{ github.ref_name }}.tar.gz
+        path: GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
 
 
   publish-release:
@@ -114,8 +114,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release-lin-${{ github.ref_name }}.tar.gz
-          asset_name: release-lin-${{ github.ref_name }}.tar.gz
+          asset_path: ./GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
+          asset_name: GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
           asset_content_type: application/x-gzip
 
       - name: Upload Windows artifact to release
@@ -124,6 +124,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release-win-${{ github.ref_name }}.7z
-          asset_name: release-win-${{ github.ref_name }}.7z
+          asset_path: ./GovnoChatPyClient-win-${{ github.ref_name }}.7z
+          asset_name: GovnoChatPyClient-win-${{ github.ref_name }}.7z
           asset_content_type: application/x-7z-compressed
