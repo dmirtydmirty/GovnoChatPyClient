@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, DISABLED, NORMAL
+
 import tcpClient
 from queue import Queue
 from threading import Thread
@@ -9,6 +10,7 @@ class GUI:
     def __init__(self, root):
         self.txt = tk.Text(root, width=60)
         self.txt.grid(row=1, column=0, columnspan=2)
+        self.txt.config(state=DISABLED)
 
         scrollbar = ttk.Scrollbar(orient="vertical", command=self.txt.yview)
         scrollbar.place(relheight=1, relx=0.974)
@@ -36,7 +38,9 @@ class GUI:
             msg: str = self.queue.get()
             msgParsed = msg.split("///")
             msgType = msgParsed[0]
+            self.txt.config(state=NORMAL)
             if msgType == "USERMSG":
                 self.txt.insert(tk.END, msgParsed[1])
             elif msgType == "SERVERMSG":
                 self.txt.insert(tk.END, msgParsed[1])
+            self.txt.config(state=DISABLED)

@@ -24,6 +24,7 @@ class TCPClient:
     def __receive(self):
         while self.active:
             data = self.sock.recv(1024)
+            print("RCV: ", data.decode())
             self.msgQueue.put(data.decode(), block=True)
 
     def send(self, msg: str):
