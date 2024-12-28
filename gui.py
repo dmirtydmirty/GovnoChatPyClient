@@ -29,7 +29,7 @@ class GUI:
         if self.e.get() == str():
             return
         textToSend = "You -> " + self.e.get()
-        self.txt.insert(tk.END, textToSend + "\n")
+        self.__write_messege(textToSend + "\n")
         self.client.send(self.e.get() + "\r\n")
         self.e.delete(0, tk.END)
 
@@ -38,9 +38,12 @@ class GUI:
             msg: str = self.queue.get()
             msgParsed = msg.split("///")
             msgType = msgParsed[0]
-            self.txt.config(state=NORMAL)
             if msgType == "USERMSG":
-                self.txt.insert(tk.END, msgParsed[1])
+                self.__write_messege(msgParsed[1])
             elif msgType == "SERVERMSG":
-                self.txt.insert(tk.END, msgParsed[1])
-            self.txt.config(state=DISABLED)
+                self.__write_messege(msgParsed[1])
+
+    def __write_messege(self, msg: str):
+        self.txt.config(state=NORMAL)
+        self.txt.insert(tk.END, msg)
+        self.txt.config(state=DISABLED)
