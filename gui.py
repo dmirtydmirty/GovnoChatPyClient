@@ -4,6 +4,7 @@ from tkinter import ttk, DISABLED, NORMAL
 import tcpClient
 from queue import Queue
 from threading import Thread
+from json import loads
 
 
 class GUI:
@@ -36,12 +37,12 @@ class GUI:
     def __receive(self):
         while True:
             msg: str = self.queue.get()
-            msgParsed = msg.split("///")
-            msgType = msgParsed[0]
+            msgParsed = loads(msg)
+            msgType = msgParsed["Type"]
             if msgType == "USERMSG":
-                self.__write_messege(msgParsed[1])
+                self.__write_messege(msgParsed["Content"])
             elif msgType == "SERVERMSG":
-                self.__write_messege(msgParsed[1])
+                self.__write_messege(msgParsed["Content"])
 
     def __write_messege(self, msg: str):
         self.txt.config(state=NORMAL)
