@@ -2,6 +2,7 @@ import socket
 import json
 from queue import Queue
 from threading import Thread
+from time import sleep
 
 
 class TCPClient:
@@ -18,6 +19,11 @@ class TCPClient:
     def start(self):
         self.sock.connect((self.ip, self.port))
         self.active = True
+
+        msg = json.dumps({"Type": 1, "Sender": 0, "Content": " "}) + "\n\r"
+
+        print(msg)
+        self.sock.sendall(msg.encode("UTF-8"))
         print("Client started")
         Thread(target=self.__receive,  daemon=True).start()
 

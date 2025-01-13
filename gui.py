@@ -10,7 +10,7 @@ class GUI:
     def __init__(self, root):
         self.txt = tk.Text(root, width=60)
         self.txt.grid(row=1, column=0, columnspan=2)
-        self.txt.config(state=DISABLED)
+
 
         scrollbar = ttk.Scrollbar(orient="vertical", command=self.txt.yview)
         scrollbar.place(relheight=1, relx=0.974)
@@ -38,12 +38,13 @@ class GUI:
             msg: str = self.queue.get()
             msgParsed = msg.split("///")
             msgType = msgParsed[0]
-            if msgType == "USERMSG":
+            if msgType == 'USERMSG':
+                self.txt.insert(tk.END, msg)
                 self.__write_messege(msgParsed[1])
             elif msgType == "SERVERMSG":
+                self.txt.insert(tk.END, msg)
                 self.__write_messege(msgParsed[1])
 
     def __write_messege(self, msg: str):
-        self.txt.config(state=NORMAL)
+
         self.txt.insert(tk.END, msg)
-        self.txt.config(state=DISABLED)
