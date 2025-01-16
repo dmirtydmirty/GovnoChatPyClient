@@ -16,16 +16,15 @@ class TCPClient:
             self.port = data["port"]
         self.active: bool() = False
 
-    def start(self):
+    def start(self)-> int:
         self.sock.connect((self.ip, self.port))
         self.active = True
 
         data = self.sock.recv(1024).decode()
-        print("RCV: ", data)
         msgParsed = json.loads(data)
-        print("My id:" + msgParsed["Content"])
         print("Client started")
         Thread(target=self.__receive,  daemon=True).start()
+        return int(msgParsed["Content"])
 
     def __receive(self):
         while self.active:
