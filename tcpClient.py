@@ -20,10 +20,6 @@ class TCPClient:
         self.sock.connect((self.ip, self.port))
         self.active = True
 
-        msg = json.dumps({"Type": 1, "Sender": 0, "Content": ""}, indent=4) + "\n\r"
-        sleep(10)
-        print(msg)
-        self.sock.sendall(msg.encode("UTF-8"))
         data = self.sock.recv(1024).decode()
         print("RCV: ", data)
         msgParsed = json.loads(data)
