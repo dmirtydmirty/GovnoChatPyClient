@@ -24,6 +24,7 @@ class GUI:
         self.queue = Queue()
         self.client = tcpClient.TCPClient(self.queue)
         self.id = self.client.start()
+        print("My id: " + str(self.id))
         Thread(target=self.__receive,  daemon=True).start()
 
     def send(self, event=None):

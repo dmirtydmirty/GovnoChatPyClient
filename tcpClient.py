@@ -22,9 +22,10 @@ class TCPClient:
 
         data = self.sock.recv(1024).decode()
         msgParsed = json.loads(data)
+        print(msgParsed)
         print("Client started")
         Thread(target=self.__receive,  daemon=True).start()
-        return int(msgParsed["Content"])
+        return int(msgParsed["Message"]["ID"])
 
     def __receive(self):
         while self.active:
