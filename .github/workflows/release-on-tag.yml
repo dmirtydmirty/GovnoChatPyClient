@@ -79,6 +79,41 @@ jobs:
         name: release-artifact-lin
         path: GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
 
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+          python-version: ${{ matrix.python-version }}
+          
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Install dependencies
+      run: python -m pip install --upgrade pip pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --noconsole --onefile client.py 
+
+    - name: Create release artifact
+      run: |
+        mkdir release
+        cp dist/client release/
+        cp srv.json release/
+        tar -czvf GovnoChatPyClient-mac-${{ github.ref_name }}.tar.gz release
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-artifact-mac
+        path: GovnoChatPyClient-mac-${{ github.ref_name }}.tar.gz
+
 
   publish-release:
     needs: [build-linux, build-windows]
@@ -94,6 +129,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-artifact-win
+          path: ./
+
+      - name: Download MacOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifact-mac
           path: ./
 
       - name: Create Release
@@ -116,6 +157,16 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
           asset_name: GovnoChatPyClient-lin-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/x-gzip
+
+      - name: Upload MacOS artifact to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./GovnoChatPyClient-mac-${{ github.ref_name }}.tar.gz
+          asset_name: GovnoChatPyClient-mac-${{ github.ref_name }}.tar.gz
           asset_content_type: application/x-gzip
 
       - name: Upload Windows artifact to release
