@@ -32,7 +32,7 @@ class GUI:
             return
         textToSend = f"You (User{self.id}) -> " + self.e.get()
         self.__write_messege(textToSend)
-        msg = dumps({"Type": 0, "Sender": self.id, "Content": str(self.e.get())}, indent=4) + "\n\r"
+        msg = dumps({"Type": 0, "Sender": self.id, "Message": { "Content": str(self.e.get()) } }, indent=4) + "\n\r"
         self.client.send(msg)
         self.e.delete(0, tk.END)
 
@@ -42,9 +42,9 @@ class GUI:
             msgParsed = loads(msg)
             msgType = msgParsed["Type"]
             if msgType == 0:
-                 self.__write_messege( f"User{msgParsed["Sender"]} -> " + msgParsed["Content"])
+                 self.__write_messege(f"User{msgParsed['Sender']} -> {msgParsed['Message']['Content']}")
             if msgType == 2:
-                self.__write_messege(msgParsed["Content"])
+                self.__write_messege(msgParsed["Message"]["StatusInfo"])
 
     def __write_messege(self, msg: str):
         self.txt.config(state=NORMAL)
